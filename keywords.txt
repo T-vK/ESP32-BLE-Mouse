@@ -1,0 +1,22 @@
+#######################################
+# Syntax Coloring Map For ESP32 BLE Mouse
+#######################################
+# Class
+#######################################
+
+BleMouse	KEYWORD1
+
+#######################################
+# Methods and Functions
+#######################################
+
+rawAction	KEYWORD2
+isConnected	KEYWORD2
+scrollDown	KEYWORD2
+scrollUp	KEYWORD2
+init	KEYWORD2
+
+#######################################
+# Constants
+#######################################
+
