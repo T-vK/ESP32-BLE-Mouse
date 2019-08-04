@@ -18,7 +18,7 @@ public:
   void rawAction(uint8_t msg, char msgSize);
 
 private:
-  BleConnectionStatus connectionStatus;
+  BleConnectionStatus* connectionStatus;
   BLEHIDDevice* hid;
   BLECharacteristic* inputMouse;
   void taskServer(void*);

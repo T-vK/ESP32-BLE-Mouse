@@ -16,7 +16,7 @@ BleMouse::BleMouse() {
 }
 
 void BleMouse::init() {
-  xTaskCreate(taskServer, "server", 20000, NULL, 5, NULL);
+  xTaskCreate(this->taskServer, "server", 20000, NULL, 5, NULL);
 }
 
 void BleMouse::taskServer(void*) {
