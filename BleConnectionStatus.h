@@ -9,11 +9,10 @@
 
 class BleConnectionStatus : public BLEServerCallbacks {
 public:
-  BleConnectionStatus(BLECharacteristic* inputMouse);
+  BleConnectionStatus();
   bool connected = false;
   void onConnect(BLEServer* pServer);
   void onDisconnect(BLEServer* pServer);
-private:
   BLECharacteristic* inputMouse;
 };
 

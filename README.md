@@ -8,7 +8,7 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
 
 ## Features
 
-This library is still under development and does not currently work.
+This library is still under development and doesn't provide a lot of features yet.
 
  - [ ] Left click
  - [ ] Right click

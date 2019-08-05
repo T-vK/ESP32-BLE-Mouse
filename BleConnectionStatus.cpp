@@ -1,7 +1,7 @@
 #include "BleConnectionStatus.h"
 
-BleConnectionStatus::BleConnectionStatus(BLECharacteristic* inputMouse) {
-  this->inputMouse = inputMouse;
+BleConnectionStatus::BleConnectionStatus() {
+  
 }
 
 void BleConnectionStatus::onConnect(BLEServer* pServer) {

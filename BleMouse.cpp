@@ -20,7 +20,7 @@ static const char* LOG_TAG = "BLEDevice";
 #endif
 
 BleMouse::BleMouse() {
-  this->connectionStatus = new BleConnectionStatus(this->inputMouse);
+  this->connectionStatus = new BleConnectionStatus();
 }
 
 void BleMouse::init() {
@@ -35,6 +35,7 @@ void BleMouse::taskServer(void* pvParameter) {
 
   bleMouseInstance->hid = new BLEHIDDevice(pServer);
   bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(1); // <-- input REPORTID from report map
+  bleMouseInstance->connectionStatus->inputMouse = bleMouseInstance->inputMouse;
 
   std::string name = "chegewara";
   bleMouseInstance->hid->manufacturer()->setValue(name);
@@ -99,16 +100,24 @@ void BleMouse::rawAction(uint8_t msg[], char msgSize) {
   this->inputMouse->notify();
 }
 
-void BleMouse::scrollDown(char unit) {
+void BleMouse::scrollDown(char amount) {
   if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, -unit };
+    uint8_t msg[] = { 0x00, 0x00, 0x00, amount };
     this->rawAction(msg, 4);
   }
 }
 
-void BleMouse::scrollUp(char unit) {
+void BleMouse::scrollDown() {
+  this->scrollDown(1);
+}
+
+void BleMouse::scrollUp(char amount) {
   if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, unit };
+    uint8_t msg[] = { 0x00, 0x00, 0x00, amount==0 ? 0x0 : amount+0x80 };
     this->rawAction(msg, 4);
   }
+}
+
+void BleMouse::scrollUp() {
+  this->scrollUp(1);
 }

@@ -13,8 +13,8 @@ void setup() {
 
 void loop() {
   if(bleMouse.isConnected()) {
-    Serial.println("Scroll Down by 1 unit");
-    bleMouse.scrollDown(1);
+    Serial.println("Scroll Down");
+    bleMouse.scrollDown();
   }
   delay(2000);
 }

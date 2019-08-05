@@ -13,8 +13,11 @@ public:
   void init();
 
   bool isConnected();
-  void scrollDown(char units);
-  void scrollUp(char units);
+  void scrollDown(char amount);
+  void scrollDown();
+  void scrollUp(char amount);
+  void scrollUp();
+  void move(char units);
   void rawAction(uint8_t msg[], char msgSize);
 
 private:
