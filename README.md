@@ -13,7 +13,8 @@ This library is still under development and doesn't provide a lot of features ye
  - [ ] Left click
  - [ ] Right click
  - [ ] Middle click
- - [ ] Move mouse pointer
+ - [ ] Back/Forwards click
+ - [x] Move mouse pointer
  - [x] Scroll up/down
  - [ ] Scroll left/right
 
@@ -27,27 +28,26 @@ BleMouse bleMouse;
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
-  bleMouse.init();
+  bleMouse.begin();
 }
 
 void loop() {
   if(bleMouse.isConnected()) {
-    Serial.println("Scroll Down by 1 unit");
-    bleMouse.scrollDown(1);
+    Serial.println("Scroll Down");
+    bleMouse.move(0,0,-1);
   }
-  delay(2000);
+  delay(1000);
 }
 ```
 
 ### API docs
+The BleMouse interface is almost identical to the Mouse Interface, so you can use documentation right here:
+https://www.arduino.cc/reference/en/language/functions/usb/mouse/
 
-``` c++
-BleMouse(ReceiverSerial, TransmitterSerial); //create new instance of this class
-
-BleMouse.init(); // needs to be called once in the beginning
-BleMouse.scrollDown(units); // scroll down by the given amount of units
-BleMouse.scrollUp(units); // scroll up by the given amount of units
-BleMouse.rawAction(msg, msgSize);
+Just remember that you have to use `BleMouse` instead of just `Mouse` and you need these two lines at the top of your script:
+```
+#include <BleMouse.h>
+BleMouse bleMouse;
 ```
 
 ### Credits

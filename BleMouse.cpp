@@ -19,12 +19,103 @@
 static const char* LOG_TAG = "BLEDevice";
 #endif
 
-BleMouse::BleMouse() {
+static const uint8_t _hidReportDescriptor[] = {
+  USAGE_PAGE(1),       0x01,
+  USAGE(1),            0x02,
+  COLLECTION(1),       0x01,
+  REPORT_ID(1),        0x01,
+  USAGE(1),            0x01,
+  COLLECTION(1),       0x00,
+  USAGE_PAGE(1),       0x09,
+  USAGE_MINIMUM(1),    0x1,
+  USAGE_MAXIMUM(1),    0x3,
+  LOGICAL_MINIMUM(1),  0x0,
+  LOGICAL_MAXIMUM(1),  0x1,
+  REPORT_COUNT(1),     0x3,
+  REPORT_SIZE(1),      0x1,
+  0x80|0x01,           0x2,    // (Data, Variable, Absolute), ;3 button bits
+  REPORT_COUNT(1),     0x1,
+  REPORT_SIZE(1),      0x5,
+  0x80|0x01,           0x1,    //(Constant), ;5 bit padding
+  USAGE_PAGE(1),       0x1,    //(Generic Desktop),
+  USAGE(1),            0x30,
+  USAGE(1),            0x31,
+  USAGE(1),            0x38,
+  LOGICAL_MINIMUM(1),  0x81,
+  LOGICAL_MAXIMUM(1),  0x7f,
+  REPORT_SIZE(1),      0x8,
+  REPORT_COUNT(1),     0x3,
+  0x80|0x01,           0x6,    //(Data, Variable, Relative), ;2 position bytes (X & Y)
+  END_COLLECTION(0),
+  END_COLLECTION(0)
+};
+
+
+BleMouse::BleMouse(void) : _buttons(0)
+{
   this->connectionStatus = new BleConnectionStatus();
 }
 
-void BleMouse::init() {
+void BleMouse::begin(void)
+{
   xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+}
+
+void BleMouse::end(void)
+{
+}
+
+void BleMouse::click(uint8_t b)
+{
+	_buttons = b;
+	move(0,0,0,0);
+	_buttons = 0;
+	move(0,0,0,0);
+}
+
+void BleMouse::move(signed char x, signed char y, signed char wheel, signed char hWheel)
+{
+  if (this->isConnected())
+  {
+    uint8_t m[5];
+  	m[0] = _buttons;
+  	m[1] = x;
+  	m[2] = y;
+  	m[3] = wheel;
+  	m[4] = hWheel;
+    this->inputMouse->setValue(m, 5);
+    this->inputMouse->notify();
+  }
+}
+
+void BleMouse::buttons(uint8_t b)
+{
+	if (b != _buttons)
+	{
+		_buttons = b;
+		move(0,0,0,0);
+	}
+}
+
+void BleMouse::press(uint8_t b)
+{
+	buttons(_buttons | b);
+}
+
+void BleMouse::release(uint8_t b)
+{
+	buttons(_buttons & ~b);
+}
+
+bool BleMouse::isPressed(uint8_t b)
+{
+	if ((b & _buttons) > 0)
+		return true;
+	return false;
+}
+
+bool BleMouse::isConnected(void) {
+  return this->connectionStatus->connected;
 }
 
 void BleMouse::taskServer(void* pvParameter) {
@@ -47,38 +138,7 @@ void BleMouse::taskServer(void* pvParameter) {
 
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
-  const uint8_t reportMapMouse[] = {
-    USAGE_PAGE(1),       0x01,
-    USAGE(1),            0x02,
-    COLLECTION(1),       0x01,
-    REPORT_ID(1),        0x01,
-    USAGE(1),            0x01,
-    COLLECTION(1),       0x00,
-    USAGE_PAGE(1),       0x09,
-    USAGE_MINIMUM(1),    0x1,
-    USAGE_MAXIMUM(1),    0x3,
-    LOGICAL_MINIMUM(1),  0x0,
-    LOGICAL_MAXIMUM(1),  0x1,
-    REPORT_COUNT(1),     0x3,
-    REPORT_SIZE(1),      0x1,
-    0x80|0x01,           0x2,    // (Data, Variable, Absolute), ;3 button bits
-    REPORT_COUNT(1),     0x1,
-    REPORT_SIZE(1),      0x5,
-    0x80|0x01,           0x1,    //(Constant), ;5 bit padding
-    USAGE_PAGE(1),       0x1,    //(Generic Desktop),
-    USAGE(1),            0x30,
-    USAGE(1),            0x31,
-    USAGE(1),            0x38,
-    LOGICAL_MINIMUM(1),  0x81,
-    LOGICAL_MAXIMUM(1),  0x7f,
-    REPORT_SIZE(1),      0x8,
-    REPORT_COUNT(1),     0x3,
-    0x80|0x01,           0x6,    //(Data, Variable, Relative), ;2 position bytes (X & Y)
-    END_COLLECTION(0),
-    END_COLLECTION(0)
-  };
-
-  bleMouseInstance->hid->reportMap((uint8_t*)reportMapMouse, sizeof(reportMapMouse));
+  bleMouseInstance->hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
   bleMouseInstance->hid->startServices();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
@@ -89,35 +149,4 @@ void BleMouse::taskServer(void* pvParameter) {
 
   ESP_LOGD(LOG_TAG, "Advertising started!");
   vTaskDelay(portMAX_DELAY); //delay(portMAX_DELAY);
-}
-
-bool BleMouse::isConnected() {
-  return this->connectionStatus->connected;
-}
-
-void BleMouse::rawAction(uint8_t msg[], char msgSize) {
-  this->inputMouse->setValue(msg, msgSize);
-  this->inputMouse->notify();
-}
-
-void BleMouse::scrollDown(char amount) {
-  if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, amount==0 ? 0x0 : amount+0x80 };
-    this->rawAction(msg, 4);
-  }
-}
-
-void BleMouse::scrollDown() {
-  this->scrollDown(1);
-}
-
-void BleMouse::scrollUp(char amount) {
-  if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, amount };
-    this->rawAction(msg, 4);
-  }
-}
-
-void BleMouse::scrollUp() {
-  this->scrollUp(1);
 }

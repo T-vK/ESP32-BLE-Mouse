@@ -7,24 +7,31 @@
 #include "BLEHIDDevice.h"
 #include "BLECharacteristic.h"
 
+#define MOUSE_LEFT 1
+#define MOUSE_RIGHT 2
+#define MOUSE_MIDDLE 4
+#define MOUSE_ALL (MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE)
+
 class BleMouse {
-public:
-  BleMouse();
-  void init();
-
-  bool isConnected();
-  void scrollDown(char amount);
-  void scrollDown();
-  void scrollUp(char amount);
-  void scrollUp();
-  void move(char units);
-  void rawAction(uint8_t msg[], char msgSize);
-
 private:
+  uint8_t _buttons;
   BleConnectionStatus* connectionStatus;
   BLEHIDDevice* hid;
   BLECharacteristic* inputMouse;
+  void buttons(uint8_t b);
+  void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
+public:
+  BleMouse(void);
+  void begin(void);
+  void end(void);
+  void click(uint8_t b = MOUSE_LEFT);
+  void move(signed char x, signed char y, signed char wheel = 0, signed char hWheel = 0);
+  void press(uint8_t b = MOUSE_LEFT);   // press LEFT by default
+  void release(uint8_t b = MOUSE_LEFT); // release LEFT by default
+  bool isPressed(uint8_t b = MOUSE_LEFT); // check LEFT by default
+
+  bool isConnected(void);
 };
 
 #endif // CONFIG_BT_ENABLED

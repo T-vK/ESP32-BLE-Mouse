@@ -7,9 +7,10 @@
 #include "BLE2902.h"
 #include "BLECharacteristic.h"
 
-class BleConnectionStatus : public BLEServerCallbacks {
+class BleConnectionStatus : public BLEServerCallbacks
+{
 public:
-  BleConnectionStatus();
+  BleConnectionStatus(void);
   bool connected = false;
   void onConnect(BLEServer* pServer);
   void onDisconnect(BLEServer* pServer);
