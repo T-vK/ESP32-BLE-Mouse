@@ -15,13 +15,13 @@ public:
   bool isConnected();
   void scrollDown(char units);
   void scrollUp(char units);
-  void rawAction(uint8_t msg, char msgSize);
+  void rawAction(uint8_t msg[], char msgSize);
 
 private:
   BleConnectionStatus* connectionStatus;
   BLEHIDDevice* hid;
   BLECharacteristic* inputMouse;
-  void taskServer(void*);
+  static void taskServer(void* pvParameter);
 };
 
 #endif // CONFIG_BT_ENABLED

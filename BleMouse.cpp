@@ -11,27 +11,36 @@
 #include "BleConnectionStatus.h"
 #include "BleMouse.h"
 
+#if defined(CONFIG_ARDUHAL_ESP_LOG)
+#include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEDevice";
+#endif
+
 BleMouse::BleMouse() {
   this->connectionStatus = new BleConnectionStatus(this->inputMouse);
 }
 
 void BleMouse::init() {
-  xTaskCreate(this->taskServer, "server", 20000, NULL, 5, NULL);
+  xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
 }
 
-void BleMouse::taskServer(void*) {
+void BleMouse::taskServer(void* pvParameter) {
+  BleMouse* bleMouseInstance = (BleMouse *) pvParameter; //static_cast<BleMouse *>(pvParameter);
   BLEDevice::init("ESP32-BLE-Mouse");
   BLEServer *pServer = BLEDevice::createServer();
-  pServer->setCallbacks(this->connectionStatus);
+  pServer->setCallbacks(bleMouseInstance->connectionStatus);
 
-  this->hid = new BLEHIDDevice(pServer);
-  this->inputMouse = this->hid->inputReport(1); // <-- input REPORTID from report map
+  bleMouseInstance->hid = new BLEHIDDevice(pServer);
+  bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(1); // <-- input REPORTID from report map
 
   std::string name = "chegewara";
-  this->hid->manufacturer()->setValue(name);
+  bleMouseInstance->hid->manufacturer()->setValue(name);
 
-  this->hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
-  this->hid->hidInfo(0x00,0x02);
+  bleMouseInstance->hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
+  bleMouseInstance->hid->hidInfo(0x00,0x02);
 
   BLESecurity *pSecurity = new BLESecurity();
 
@@ -68,24 +77,24 @@ void BleMouse::taskServer(void*) {
     END_COLLECTION(0)
   };
 
-  this->hid->reportMap((uint8_t*)reportMapMouse, sizeof(reportMapMouse));
-  this->hid->startServices();
+  bleMouseInstance->hid->reportMap((uint8_t*)reportMapMouse, sizeof(reportMapMouse));
+  bleMouseInstance->hid->startServices();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->setAppearance(HID_MOUSE);
-  pAdvertising->addServiceUUID(this->hid->hidService()->getUUID());
+  pAdvertising->addServiceUUID(bleMouseInstance->hid->hidService()->getUUID());
   pAdvertising->start();
-  this->hid->setBatteryLevel(7);
+  bleMouseInstance->hid->setBatteryLevel(7);
 
   ESP_LOGD(LOG_TAG, "Advertising started!");
-  delay(portMAX_DELAY);
+  vTaskDelay(portMAX_DELAY); //delay(portMAX_DELAY);
 }
 
 bool BleMouse::isConnected() {
   return this->connectionStatus->connected;
 }
 
-void rawAction(uint8_t msg, char msgSize) {
+void BleMouse::rawAction(uint8_t msg[], char msgSize) {
   this->inputMouse->setValue(msg, msgSize);
   this->inputMouse->notify();
 }
