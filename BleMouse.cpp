@@ -102,7 +102,7 @@ void BleMouse::rawAction(uint8_t msg[], char msgSize) {
 
 void BleMouse::scrollDown(char amount) {
   if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, amount };
+    uint8_t msg[] = { 0x00, 0x00, 0x00, amount==0 ? 0x0 : amount+0x80 };
     this->rawAction(msg, 4);
   }
 }
@@ -113,7 +113,7 @@ void BleMouse::scrollDown() {
 
 void BleMouse::scrollUp(char amount) {
   if(this->isConnected()) {
-    uint8_t msg[] = { 0x00, 0x00, 0x00, amount==0 ? 0x0 : amount+0x80 };
+    uint8_t msg[] = { 0x00, 0x00, 0x00, amount };
     this->rawAction(msg, 4);
   }
 }
