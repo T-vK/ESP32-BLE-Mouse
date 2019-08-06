@@ -43,7 +43,7 @@ void loop() {
 The BleMouse interface is almost identical to the Mouse Interface, so you can use documentation right here:
 https://www.arduino.cc/reference/en/language/functions/usb/mouse/
 
-Just remember that you have to use `BleMouse` instead of just `Mouse` and you need these two lines at the top of your script:
+Just remember that you have to use `bleMouse` instead of just `Mouse` and you need these two lines at the top of your script:
 ```
 #include <BleMouse.h>
 BleMouse bleMouse;
