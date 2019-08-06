@@ -15,7 +15,7 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
-- [https://github.com/T-vK/ESP32-BLE-Mouse/releases](Download the latest release of this library from the release page.)
+- [Download the latest release of this library from the release page.](https://github.com/T-vK/ESP32-BLE-Mouse/releases)
 - In the Arduino IDE go to "Sketch" -> "Include Library" -> "Add .ZIP Library..." and select the file you just downloaded.
 - You can now go to "File" -> "Examples" -> "ESP32 BLE Mouse" and select any of the examples to get started.
 
