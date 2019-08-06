@@ -8,15 +8,14 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
 
 ## Features
 
-This library is still under development and doesn't provide a lot of features yet.
-
- - [ ] Left click
- - [ ] Right click
- - [ ] Middle click
- - [ ] Back/Forwards click
- - [x] Move mouse pointer
+ - [x] Left click
+ - [x] Right click
+ - [x] Middle click
+ - [x] Back/Forwards click
+ - [x] Move mouse pointer left/right
+ - [ ] Move mouse pointer up/down (I'm working on it.)
  - [x] Scroll up/down
- - [ ] Scroll left/right
+ - [x] Scroll left/right
 
 ### Example
 
@@ -50,35 +49,11 @@ Just remember that you have to use `BleMouse` instead of just `Mouse` and you ne
 BleMouse bleMouse;
 ```
 
+This library supports two additional features that the Mouse library does not support at the time of writing:
+
+- Scrolling left/right E.g.: `bleMouse.move(0,0,0,1)` (Scroll left) and `bleMouse.move(0,0,0,-1)` (Scroll right)
+- Using the back and forward buttons E.g.: `bleMouse.click(MOUSE_BACK)` and `bleMouse.click(MOUSE_FORWARD)`
+
 ### Credits
 
 Credits to [chegewara](https://github.com/chegewara) as this library is based on [this piece of code](https://github.com/nkolban/esp32-snippets/issues/230#issuecomment-473135679) that he provided.
-
-### More info
-
-```
-// http://www.keil.com/forum/15671/usb-mouse-with-scroll-wheel/
-// Wheel Mouse - simplified version - 5 button, vertical and horizontal wheel
-//
-// Input report - 5 bytes
-//
-//     Byte | D7      D6      D5      D4      D3      D2      D1      D0
-//    ------+---------------------------------------------------------------------
-//      0   |  0       0       0    Forward  Back    Middle  Right   Left (Buttons)
-//      1   |                             X
-//      2   |                             Y
-//      3   |                       Vertical Wheel
-//      4   |                    Horizontal (Tilt) Wheel
-//
-// Feature report - 1 byte
-//
-//     Byte | D7      D6      D5      D4   |  D3      D2  |   D1      D0
-//    ------+------------------------------+--------------+----------------
-//      0   |  0       0       0       0   |  Horizontal  |    Vertical
-//                                             (Resolution multiplier)
-//
-// Reference
-//    Wheel.docx in "Enhanced Wheel Support in Windows Vista" on MS WHDC
-//    http://www.microsoft.com/whdc/device/input/wheel.mspx
-//
-```

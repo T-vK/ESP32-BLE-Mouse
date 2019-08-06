@@ -10,7 +10,9 @@
 #define MOUSE_LEFT 1
 #define MOUSE_RIGHT 2
 #define MOUSE_MIDDLE 4
-#define MOUSE_ALL (MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE)
+#define MOUSE_BACK 8
+#define MOUSE_FORWARD 16
+#define MOUSE_ALL (MOUSE_LEFT | MOUSE_RIGHT | MOUSE_MIDDLE) # For compatibility with the Mouse library
 
 class BleMouse {
 private:
