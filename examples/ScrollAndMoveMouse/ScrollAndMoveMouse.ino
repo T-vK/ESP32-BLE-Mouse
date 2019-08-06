@@ -13,6 +13,7 @@ void setup() {
 
 void loop() {
   if(bleMouse.isConnected()) {
+    
     unsigned long startTime;
 
     Serial.println("Scroll up");

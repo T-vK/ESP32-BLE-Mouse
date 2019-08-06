@@ -17,6 +17,8 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
  - [x] Scroll up/down
  - [x] Scroll left/right
 
+
+
 ### Example
 
 ``` C++

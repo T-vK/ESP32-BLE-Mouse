@@ -108,10 +108,10 @@ void BleMouse::end(void)
 
 void BleMouse::click(uint8_t b)
 {
-	_buttons = b;
-	move(0,0,0,0);
-	_buttons = 0;
-	move(0,0,0,0);
+  _buttons = b;
+  move(0,0,0,0);
+  _buttons = 0;
+  move(0,0,0,0);
 }
 
 void BleMouse::move(signed char x, signed char y, signed char wheel, signed char hWheel)
@@ -119,10 +119,10 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
   if (this->isConnected())
   {
     uint8_t m[4];
-  	m[0] = _buttons;
-  	m[1] = x;
-  	m[2] = wheel;
-  	m[3] = hWheel;
+    m[0] = _buttons;
+    m[1] = x;
+    m[2] = wheel;
+    m[3] = hWheel;
     this->inputMouse->setValue(m, 4);
     this->inputMouse->notify();
   }
@@ -130,28 +130,28 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
 
 void BleMouse::buttons(uint8_t b)
 {
-	if (b != _buttons)
-	{
-		_buttons = b;
-		move(0,0,0,0);
-	}
+  if (b != _buttons)
+  {
+    _buttons = b;
+    move(0,0,0,0);
+  }
 }
 
 void BleMouse::press(uint8_t b)
 {
-	buttons(_buttons | b);
+  buttons(_buttons | b);
 }
 
 void BleMouse::release(uint8_t b)
 {
-	buttons(_buttons & ~b);
+  buttons(_buttons & ~b);
 }
 
 bool BleMouse::isPressed(uint8_t b)
 {
-	if ((b & _buttons) > 0)
-		return true;
-	return false;
+  if ((b & _buttons) > 0)
+    return true;
+  return false;
 }
 
 bool BleMouse::isConnected(void) {

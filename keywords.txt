@@ -10,13 +10,21 @@ BleMouse	KEYWORD1
 # Methods and Functions
 #######################################
 
-rawAction	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+click	KEYWORD2
+move	KEYWORD2
+press	KEYWORD2
+release	KEYWORD2
+isPressed	KEYWORD2
 isConnected	KEYWORD2
-scrollDown	KEYWORD2
-scrollUp	KEYWORD2
-init	KEYWORD2
 
 #######################################
 # Constants
 #######################################
 
+MOUSE_LEFT	LITERAL1
+MOUSE_RIGHT	LITERAL1
+MOUSE_MIDDLE	LITERAL1
+MOUSE_BACK	LITERAL1
+MOUSE_FORWARD	LITERAL1
