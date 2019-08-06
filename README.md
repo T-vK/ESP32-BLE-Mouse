@@ -9,7 +9,7 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
  - [x] Middle click
  - [x] Back/Forwards click
  - [x] Move mouse pointer left/right
- - [x] Move mouse pointer up/down (I'm working on it.)
+ - [x] Move mouse pointer up/down
  - [x] Scroll up/down
  - [x] Scroll left/right
 
