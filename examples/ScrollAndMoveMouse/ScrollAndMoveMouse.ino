@@ -13,7 +13,7 @@ void setup() {
 
 void loop() {
   if(bleMouse.isConnected()) {
-    
+
     unsigned long startTime;
 
     Serial.println("Scroll up");
@@ -35,7 +35,7 @@ void loop() {
     Serial.println("Scroll left");
     startTime = millis();
     while(millis()<startTime+2000) {
-      bleMouse.move(0,0,0,1);
+      bleMouse.move(0,0,0,-1);
       delay(100);
     }
     delay(500);
@@ -43,7 +43,7 @@ void loop() {
     Serial.println("Scroll right");
     startTime = millis();
     while(millis()<startTime+2000) {
-      bleMouse.move(0,0,0,-1);
+      bleMouse.move(0,0,0,1);
       delay(100);
     }
     delay(500);

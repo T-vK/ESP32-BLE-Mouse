@@ -118,12 +118,13 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
 {
   if (this->isConnected())
   {
-    uint8_t m[4];
+    uint8_t m[5];
     m[0] = _buttons;
     m[1] = x;
-    m[2] = wheel;
-    m[3] = hWheel;
-    this->inputMouse->setValue(m, 4);
+    m[2] = y;
+    m[3] = wheel;
+    m[4] = hWheel;
+    this->inputMouse->setValue(m, 5);
     this->inputMouse->notify();
   }
 }

@@ -16,5 +16,5 @@ void loop() {
     Serial.println("Scroll Down");
     bleMouse.move(0,0,-1);
   }
-  delay(1000);
+  delay(2000);
 }
