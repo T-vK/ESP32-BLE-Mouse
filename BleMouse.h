@@ -24,7 +24,7 @@ private:
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
 public:
-  BleMouse(void);
+  BleMouse(std::string deviceName = "Espressif", std::string deviceManufacturer = "ESP32 Bluetooth Mouse", uint8_t batteryLevel = 100);
   void begin(void);
   void end(void);
   void click(uint8_t b = MOUSE_LEFT);
@@ -32,8 +32,11 @@ public:
   void press(uint8_t b = MOUSE_LEFT);   // press LEFT by default
   void release(uint8_t b = MOUSE_LEFT); // release LEFT by default
   bool isPressed(uint8_t b = MOUSE_LEFT); // check LEFT by default
-
   bool isConnected(void);
+  void setBatteryLevel(uint8_t level);
+  uint8_t batteryLevel;
+  std::string deviceManufacturer;
+  std::string deviceName;
 };
 
 #endif // CONFIG_BT_ENABLED
