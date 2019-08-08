@@ -133,7 +133,6 @@ bool BleMouse::isConnected(void) {
 
 void BleMouse::setBatteryLevel(uint8_t level) {
   this->batteryLevel = level;
-  this->hid->setBatteryLevel(level);
 }
 
 void BleMouse::taskServer(void* pvParameter) {

@@ -12,6 +12,8 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
  - [x] Move mouse pointer up/down
  - [x] Scroll up/down
  - [x] Scroll left/right
+ - [ ] Report optional battery level to host
+ - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Android
  - [x] Compatible with Windows
  - [x] Compatible with Linux
@@ -59,10 +61,17 @@ Just remember that you have to use `bleMouse` instead of just `Mouse` and you ne
 BleMouse bleMouse;
 ```
 
-This library supports two additional features that the Mouse library does not support at the time of writing:
+This library supports a few additional features that the Mouse library does not support at the time of writing:
 
 - Scrolling left/right E.g.: `bleMouse.move(0,0,0,1)` (Scroll left) and `bleMouse.move(0,0,0,-1)` (Scroll right)
 - Using the back and forward buttons E.g.: `bleMouse.click(MOUSE_BACK)` and `bleMouse.click(MOUSE_FORWARD)`
+
+There is also Bluetooth specific information that you can use (optional):
+
+Instead of `BleMouse bleMouse;` you can do `BleMouse bleMouse("Bluetooth Device Name", "Bluetooth Device Manufacturer", 100);`.
+The third parameter is the initial battery level of your device. To adjust the battery level later on you can simply call e.g.  `bleMouse.setBatteryLevel(50)` (set battery level to 50%).
+By default the battery level will be set to 100%, the device name will be `ESP32 Bluetooth Mouse` and the manufacturer will be `Espressif`.
+
 
 ## Credits
 
