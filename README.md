@@ -2,6 +2,10 @@
 
 This library allows you to make the ESP32 act as a Bluetooth Mouse and control what it does. E.g. move the mouse, scroll, make a click etc.
 
+You might also be interested in:
+- [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
+- [ESP32-BLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad)
+
 ## Features
 
  - [x] Left click
@@ -12,7 +16,7 @@ This library allows you to make the ESP32 act as a Bluetooth Mouse and control w
  - [x] Move mouse pointer up/down
  - [x] Scroll up/down
  - [x] Scroll left/right
- - [ ] Report optional battery level to host
+ - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Android
  - [x] Compatible with Windows
