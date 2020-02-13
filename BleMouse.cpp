@@ -61,7 +61,9 @@ static const uint8_t _hidReportDescriptor[] = {
   END_COLLECTION(0)          // END_COLLECTION
 };
 
-BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(0)
+BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : 
+    _buttons(0),
+    hid(0)
 {
   this->deviceName = deviceName;
   this->deviceManufacturer = deviceManufacturer;
@@ -133,6 +135,8 @@ bool BleMouse::isConnected(void) {
 
 void BleMouse::setBatteryLevel(uint8_t level) {
   this->batteryLevel = level;
+  if (hid != 0)
+      this->hid->setBatteryLevel(this->batteryLevel);
 }
 
 void BleMouse::taskServer(void* pvParameter) {
