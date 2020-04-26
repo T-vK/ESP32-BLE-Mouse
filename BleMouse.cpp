@@ -161,6 +161,8 @@ void BleMouse::taskServer(void* pvParameter) {
   bleMouseInstance->hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
   bleMouseInstance->hid->startServices();
 
+  bleKeyboardInstance->onStarted(pServer);
+
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->setAppearance(HID_MOUSE);
   pAdvertising->addServiceUUID(bleMouseInstance->hid->hidService()->getUUID());
