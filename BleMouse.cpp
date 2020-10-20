@@ -25,7 +25,6 @@ static const uint8_t _hidReportDescriptor[] = {
   COLLECTION(1),       0x01, // COLLECTION (Application)
   USAGE(1),            0x01, //   USAGE (Pointer)
   COLLECTION(1),       0x00, //   COLLECTION (Physical)
-  REPORT_ID(1),        0x01, //     REPORT_ID (1)
   // ------------------------------------------------- Buttons (Left, Right, Middle, Back, Forward)
   USAGE_PAGE(1),       0x09, //     USAGE_PAGE (Button)
   USAGE_MINIMUM(1),    0x01, //     USAGE_MINIMUM (Button 1)
@@ -146,7 +145,7 @@ void BleMouse::taskServer(void* pvParameter) {
   pServer->setCallbacks(bleMouseInstance->connectionStatus);
 
   bleMouseInstance->hid = new BLEHIDDevice(pServer);
-  bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(1); // <-- input REPORTID from report map
+  bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(0); // <-- input REPORTID from report map
   bleMouseInstance->connectionStatus->inputMouse = bleMouseInstance->inputMouse;
 
   bleMouseInstance->hid->manufacturer()->setValue(bleMouseInstance->deviceManufacturer);
