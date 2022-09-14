@@ -1,3 +1,4 @@
+#include "BleMouse.h"
 // #include <BLEDevice.h>
 // #include <BLEUtils.h>
 // #include <BLEServer.h>
@@ -11,12 +12,11 @@
 
 
 #include "HIDTypes.h"
-#include "HIDKeyboardTypes.h"
+// #include "HIDKeyboardTypes.h"
 #include <driver/adc.h>
 #include "sdkconfig.h"
 
 // #include "BleConnectionStatus.h"
-#include "BleMouse.h"
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
   #include "esp32-hal-log.h"
@@ -27,7 +27,7 @@
 #endif
 
 // Report IDs:
-#define MOUSE_ID 0x01
+#define MOUSE_ID 0x00
 
 static const uint8_t _hidReportDescriptor[] = {
   USAGE_PAGE(1),       0x01, // USAGE_PAGE (Generic Desktop)
@@ -102,7 +102,8 @@ void BleMouse::begin(void)
 
   hid->manufacturer()->setValue(deviceManufacturer);
 
-  hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
+  // hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
+  hid->pnp(0x02, vid, pid, version);
   hid->hidInfo(0x00,0x02);
 
   BLEDevice::setSecurityAuth(true, true, true);
@@ -156,7 +157,7 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
     m[2] = y;
     m[3] = wheel;
     m[4] = hWheel;
-    this->inputMouse->setValue(m, 5);
+    this->inputMouse->setValue((uint8_t*)m, sizeof(m));
     this->inputMouse->notify();
     #if defined(USE_NIMBLE)        
     // vTaskDelay(delayTicks);

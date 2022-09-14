@@ -1,5 +1,6 @@
 #ifndef ESP32_BLE_MOUSE_H
 #define ESP32_BLE_MOUSE_H
+#include "sdkconfig.h"
 
 
 #if defined(CONFIG_BT_ENABLED)
@@ -10,7 +11,6 @@
 
 #include "NimBLECharacteristic.h"
 #include "NimBLEHIDDevice.h"
-#include "sdkconfig.h"
 
 #define BLEDevice                  NimBLEDevice
 #define BLEServerCallbacks         NimBLEServerCallbacks
@@ -43,6 +43,10 @@ private:
   void buttons(uint8_t b);
   void rawAction(uint8_t msg[], char msgSize);
   void delay_ms(uint64_t ms);
+
+  uint16_t vid       = 0x05ac;
+  uint16_t pid       = 0x820a;
+  uint16_t version   = 0x0210;
 
   // static void taskServer(void* pvParameter);
 public:
