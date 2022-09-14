@@ -1,6 +1,6 @@
-#include "BleMouse.h"
 
 #if defined(USE_NIMBLE)
+#include "BleMouse.h"
 #include <NimBLEDevice.h>
 #include <NimBLEServer.h>
 #include <NimBLEUtils.h>
@@ -15,6 +15,7 @@
 #include "BLEHIDDevice.h"
 #include "HIDKeyboardTypes.h"
 #include "BleConnectionStatus.h"
+#include "BleMouse.h"
 
 #endif
 
