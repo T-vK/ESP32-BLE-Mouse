@@ -1,14 +1,21 @@
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include "BLE2902.h"
-#include "BLEHIDDevice.h"
+// #include <BLEDevice.h>
+// #include <BLEUtils.h>
+// #include <BLEServer.h>
+// #include "BLE2902.h"
+// #include "BLEHIDDevice.h"
+
+#include <NimBLEDevice.h>
+#include <NimBLEServer.h>
+#include <NimBLEUtils.h>
+#include <NimBLEHIDDevice.h>
+
+
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
 #include <driver/adc.h>
 #include "sdkconfig.h"
 
-#include "BleConnectionStatus.h"
+// #include "BleConnectionStatus.h"
 #include "BleMouse.h"
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
@@ -18,6 +25,9 @@
   #include "esp_log.h"
   static const char* LOG_TAG = "BLEDevice";
 #endif
+
+// Report IDs:
+#define MOUSE_ID 0x01
 
 static const uint8_t _hidReportDescriptor[] = {
   USAGE_PAGE(1),       0x01, // USAGE_PAGE (Generic Desktop)
@@ -60,19 +70,68 @@ static const uint8_t _hidReportDescriptor[] = {
   END_COLLECTION(0)          // END_COLLECTION
 };
 
-BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : 
-    _buttons(0),
-    hid(0)
-{
-  this->deviceName = deviceName;
-  this->deviceManufacturer = deviceManufacturer;
-  this->batteryLevel = batteryLevel;
-  this->connectionStatus = new BleConnectionStatus();
-}
+BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) 
+    : hid(0)
+    , deviceName(std::string(deviceName).substr(0, 15))
+    , deviceManufacturer(std::string(deviceManufacturer).substr(0,15))
+    , batteryLevel(batteryLevel) {}
 
 void BleMouse::begin(void)
 {
-  xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+  BLEDevice::init(deviceName);
+
+  BLEServer* pServer = BLEDevice::createServer();
+  pServer->setCallbacks(this);
+
+  hid = new BLEHIDDevice(pServer);
+  inputMouse = hid->inputReport(MOUSE_ID);  // <-- input REPORTID from report map
+  // outputMouse = hid->outputReport(MOUSE_ID); // ??? what is this doing ?
+
+  // outputMouse->setCallbacks(this);
+  // inputMediaKeys = hid->inputReport(MEDIA_KEYS_ID);
+
+  // xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+  // BleMouse* bleMouseInstance = (BleMouse *) pvParameter; //static_cast<BleMouse *>(pvParameter);
+  // BLEDevice::init(bleMouseInstance->deviceName);
+  // BLEServer *pServer = BLEDevice::createServer();
+  // pServer->setCallbacks(bleMouseInstance->connectionStatus);
+
+  // bleMouseInstance->hid = new BLEHIDDevice(pServer);
+  // bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(0); // <-- input REPORTID from report map
+  // bleMouseInstance->connectionStatus->inputMouse = bleMouseInstance->inputMouse;
+
+  hid->manufacturer()->setValue(deviceManufacturer);
+
+  hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
+  hid->hidInfo(0x00,0x02);
+
+  BLEDevice::setSecurityAuth(true, true, true);
+
+
+  // BLESecurity *pSecurity = new BLESecurity();
+
+  // pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
+
+  hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
+  hid->startServices();
+
+  onStarted(pServer);
+
+  advertising = pServer->getAdvertising();
+  advertising->setAppearance(HID_MOUSE);
+  advertising->addServiceUUID(hid->hidService()->getUUID());
+  advertising->setScanResponse(false);
+  advertising->start();
+  hid->setBatteryLevel(batteryLevel);
+
+  // BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  // pAdvertising->setAppearance(HID_MOUSE);
+  // pAdvertising->addServiceUUID(bleMouseInstance->hid->hidService()->getUUID());
+  // pAdvertising->start();
+  // bleMouseInstance->hid->setBatteryLevel(bleMouseInstance->batteryLevel);
+
+  ESP_LOGD(LOG_TAG, "Advertising started!");
+
 }
 
 void BleMouse::end(void)
@@ -99,6 +158,10 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
     m[4] = hWheel;
     this->inputMouse->setValue(m, 5);
     this->inputMouse->notify();
+    #if defined(USE_NIMBLE)        
+    // vTaskDelay(delayTicks);
+      this->delay_ms(_delay_ms);
+    #endif // USE_NIMBLE
   }
 }
 
@@ -129,7 +192,7 @@ bool BleMouse::isPressed(uint8_t b)
 }
 
 bool BleMouse::isConnected(void) {
-  return this->connectionStatus->connected;
+  return this->connected;
 }
 
 void BleMouse::setBatteryLevel(uint8_t level) {
@@ -138,36 +201,51 @@ void BleMouse::setBatteryLevel(uint8_t level) {
       this->hid->setBatteryLevel(this->batteryLevel);
 }
 
-void BleMouse::taskServer(void* pvParameter) {
-  BleMouse* bleMouseInstance = (BleMouse *) pvParameter; //static_cast<BleMouse *>(pvParameter);
-  BLEDevice::init(bleMouseInstance->deviceName);
-  BLEServer *pServer = BLEDevice::createServer();
-  pServer->setCallbacks(bleMouseInstance->connectionStatus);
+void BleMouse::onConnect(BLEServer* pServer) {
+  this->connected = true;
+    ESP_LOGD(LOG_TAG, "Connected");
 
-  bleMouseInstance->hid = new BLEHIDDevice(pServer);
-  bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(0); // <-- input REPORTID from report map
-  bleMouseInstance->connectionStatus->inputMouse = bleMouseInstance->inputMouse;
 
-  bleMouseInstance->hid->manufacturer()->setValue(bleMouseInstance->deviceManufacturer);
+#if !defined(USE_NIMBLE)
 
-  bleMouseInstance->hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
-  bleMouseInstance->hid->hidInfo(0x00,0x02);
+  BLE2902* desc = (BLE2902*)this->inputKeyboard->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
+  desc->setNotifications(true);
+  desc = (BLE2902*)this->inputMediaKeys->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
+  desc->setNotifications(true);
 
-  BLESecurity *pSecurity = new BLESecurity();
+#endif // !USE_NIMBLE
 
-  pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
+}
 
-  bleMouseInstance->hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
-  bleMouseInstance->hid->startServices();
+void BleMouse::onDisconnect(BLEServer* pServer) {
+  this->connected = false;
 
-  bleMouseInstance->onStarted(pServer);
+#if !defined(USE_NIMBLE)
 
-  BLEAdvertising *pAdvertising = pServer->getAdvertising();
-  pAdvertising->setAppearance(HID_MOUSE);
-  pAdvertising->addServiceUUID(bleMouseInstance->hid->hidService()->getUUID());
-  pAdvertising->start();
-  bleMouseInstance->hid->setBatteryLevel(bleMouseInstance->batteryLevel);
+  BLE2902* desc = (BLE2902*)this->inputKeyboard->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
+  desc->setNotifications(false);
+  desc = (BLE2902*)this->inputMediaKeys->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
+  desc->setNotifications(false);
 
-  ESP_LOGD(LOG_TAG, "Advertising started!");
-  vTaskDelay(portMAX_DELAY); //delay(portMAX_DELAY);
+  advertising->start();
+
+#endif // !USE_NIMBLE
+}
+
+void BleMouse::onWrite(BLECharacteristic* me) {
+  uint8_t* value = (uint8_t*)(me->getValue().c_str());
+  // (void)value;
+  // _keyboardLedsStatus = *value;
+  ESP_LOGI(LOG_TAG, "special keys: %d", *value);
+}
+
+void BleMouse::delay_ms(uint64_t ms) {
+  uint64_t m = esp_timer_get_time();
+  if(ms){
+    uint64_t e = (m + (ms * 1000));
+    if(m > e){ //overflow
+        while(esp_timer_get_time() > e) { }
+    }
+    while(esp_timer_get_time() < e) {}
+  }
 }
