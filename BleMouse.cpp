@@ -1,15 +1,28 @@
+
+#if defined(USE_NIMBLE)
+#include "BleMouse.h"
+#include <NimBLEDevice.h>
+#include <NimBLEServer.h>
+#include <NimBLEUtils.h>
+#include <NimBLEHIDDevice.h>
+
+#else
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include "BLE2902.h"
 #include "BLEHIDDevice.h"
-#include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
+#include "BleConnectionStatus.h"
+#include "BleMouse.h"
+
+#endif
+
+#include "HIDTypes.h"
 #include <driver/adc.h>
 #include "sdkconfig.h"
 
-#include "BleConnectionStatus.h"
-#include "BleMouse.h"
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
   #include "esp32-hal-log.h"
@@ -18,6 +31,9 @@
   #include "esp_log.h"
   static const char* LOG_TAG = "BLEDevice";
 #endif
+
+// Report IDs:
+#define MOUSE_ID 0x00
 
 static const uint8_t _hidReportDescriptor[] = {
   USAGE_PAGE(1),       0x01, // USAGE_PAGE (Generic Desktop)
@@ -59,7 +75,13 @@ static const uint8_t _hidReportDescriptor[] = {
   END_COLLECTION(0),         //   END_COLLECTION
   END_COLLECTION(0)          // END_COLLECTION
 };
-
+#if defined(USE_NIMBLE)
+BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) 
+    : hid(0)
+    , deviceName(std::string(deviceName).substr(0, 15))
+    , deviceManufacturer(std::string(deviceManufacturer).substr(0,15))
+    , batteryLevel(batteryLevel) {}
+#else
 BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : 
     _buttons(0),
     hid(0)
@@ -69,10 +91,43 @@ BleMouse::BleMouse(std::string deviceName, std::string deviceManufacturer, uint8
   this->batteryLevel = batteryLevel;
   this->connectionStatus = new BleConnectionStatus();
 }
-
+#endif
 void BleMouse::begin(void)
 {
-  xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+  #if defined(USE_NIMBLE)
+
+  BLEDevice::init(deviceName);
+
+  BLEServer* pServer = BLEDevice::createServer();
+  pServer->setCallbacks(this);
+
+  hid = new BLEHIDDevice(pServer);
+  inputMouse = hid->inputReport(MOUSE_ID);  // <-- input REPORTID from report map
+
+  hid->manufacturer()->setValue(deviceManufacturer);
+
+  hid->pnp(0x02, vid, pid, version);
+  hid->hidInfo(0x00,0x02);
+
+  BLEDevice::setSecurityAuth(true, true, true);
+
+  hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
+  hid->startServices();
+
+  onStarted(pServer);
+
+  advertising = pServer->getAdvertising();
+  advertising->setAppearance(HID_MOUSE);
+  advertising->addServiceUUID(hid->hidService()->getUUID());
+  advertising->setScanResponse(false);
+  advertising->start();
+  hid->setBatteryLevel(batteryLevel);
+
+  ESP_LOGD(LOG_TAG, "Advertising started!");
+
+  #else
+    xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+  #endif
 }
 
 void BleMouse::end(void)
@@ -97,8 +152,12 @@ void BleMouse::move(signed char x, signed char y, signed char wheel, signed char
     m[2] = y;
     m[3] = wheel;
     m[4] = hWheel;
-    this->inputMouse->setValue(m, 5);
+    this->inputMouse->setValue((uint8_t*)m, sizeof(m));
     this->inputMouse->notify();
+    #if defined(USE_NIMBLE)        
+    // vTaskDelay(delayTicks);
+      this->delay_ms(_delay_ms);
+    #endif // USE_NIMBLE
   }
 }
 
@@ -129,7 +188,11 @@ bool BleMouse::isPressed(uint8_t b)
 }
 
 bool BleMouse::isConnected(void) {
-  return this->connectionStatus->connected;
+  #if defined(USE_NIMBLE)
+    return this->connected;
+  #else
+    return this->connectionStatus->connected;
+  #endif
 }
 
 void BleMouse::setBatteryLevel(uint8_t level) {
@@ -138,6 +201,35 @@ void BleMouse::setBatteryLevel(uint8_t level) {
       this->hid->setBatteryLevel(this->batteryLevel);
 }
 
+#if defined(USE_NIMBLE)
+void BleMouse::onConnect(BLEServer* pServer) {
+  this->connected = true;
+}
+
+void BleMouse::onDisconnect(BLEServer* pServer) {
+  this->connected = false;
+}
+
+// this shouldn't 
+void BleMouse::onWrite(BLECharacteristic* me) {
+  uint8_t* value = (uint8_t*)(me->getValue().c_str());
+  // is this can be use for future ?
+  ESP_LOGI(LOG_TAG, "special keys: %d", *value);
+}
+
+void BleMouse::delay_ms(uint64_t ms) {
+  uint64_t m = esp_timer_get_time();
+  if(ms){
+    uint64_t e = (m + (ms * 1000));
+    if(m > e){ //overflow
+        while(esp_timer_get_time() > e) { }
+    }
+    while(esp_timer_get_time() < e) {}
+  }
+}
+#endif // !USE_NIMBLE
+
+#if ! defined(USE_NIMBLE)        
 void BleMouse::taskServer(void* pvParameter) {
   BleMouse* bleMouseInstance = (BleMouse *) pvParameter; //static_cast<BleMouse *>(pvParameter);
   BLEDevice::init(bleMouseInstance->deviceName);
@@ -171,3 +263,5 @@ void BleMouse::taskServer(void* pvParameter) {
   ESP_LOGD(LOG_TAG, "Advertising started!");
   vTaskDelay(portMAX_DELAY); //delay(portMAX_DELAY);
 }
+#endif
+
