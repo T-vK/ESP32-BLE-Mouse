@@ -103,33 +103,13 @@ void BleMouse::begin(void)
 
   hid = new BLEHIDDevice(pServer);
   inputMouse = hid->inputReport(MOUSE_ID);  // <-- input REPORTID from report map
-  // outputMouse = hid->outputReport(MOUSE_ID); // ??? what is this doing ?
-
-  // outputMouse->setCallbacks(this);
-  // inputMediaKeys = hid->inputReport(MEDIA_KEYS_ID);
-
-  // xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
-  // BleMouse* bleMouseInstance = (BleMouse *) pvParameter; //static_cast<BleMouse *>(pvParameter);
-  // BLEDevice::init(bleMouseInstance->deviceName);
-  // BLEServer *pServer = BLEDevice::createServer();
-  // pServer->setCallbacks(bleMouseInstance->connectionStatus);
-
-  // bleMouseInstance->hid = new BLEHIDDevice(pServer);
-  // bleMouseInstance->inputMouse = bleMouseInstance->hid->inputReport(0); // <-- input REPORTID from report map
-  // bleMouseInstance->connectionStatus->inputMouse = bleMouseInstance->inputMouse;
 
   hid->manufacturer()->setValue(deviceManufacturer);
 
-  // hid->pnp(0x02, 0xe502, 0xa111, 0x0210);
   hid->pnp(0x02, vid, pid, version);
   hid->hidInfo(0x00,0x02);
 
   BLEDevice::setSecurityAuth(true, true, true);
-
-
-  // BLESecurity *pSecurity = new BLESecurity();
-
-  // pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
   hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
   hid->startServices();
@@ -142,12 +122,6 @@ void BleMouse::begin(void)
   advertising->setScanResponse(false);
   advertising->start();
   hid->setBatteryLevel(batteryLevel);
-
-  // BLEAdvertising *pAdvertising = pServer->getAdvertising();
-  // pAdvertising->setAppearance(HID_MOUSE);
-  // pAdvertising->addServiceUUID(bleMouseInstance->hid->hidService()->getUUID());
-  // pAdvertising->start();
-  // bleMouseInstance->hid->setBatteryLevel(bleMouseInstance->batteryLevel);
 
   ESP_LOGD(LOG_TAG, "Advertising started!");
 
